@@ -1,7 +1,10 @@
+import entity.Address;
 import entity.Member;
+import entity.Product;
 
 import javax.persistence.*;
 import java.sql.SQLOutput;
+import java.util.Iterator;
 import java.util.List;
 
 public class Main {
@@ -93,5 +96,83 @@ public class Main {
         List<Member> members = em.createQuery("SELECT m FROM Member m where m.username = ?1", Member.class)
                 .setParameter(1, usernameParam)
                 .getResultList();
+    }
+
+    /**
+     * 프로젝션
+     * SELECT 절에 조회할 대상을 지정하는 것을 프로젝션이라 하고 [SELECT (프로젝션 대상) FROM]으로 대상을 선택한다.
+     * 프로젝션 대상은 엔티티, 엠비디드 타입, 스칼라 타입이 있다. 스칼라 타입은 숫자, 문자 등 기본 데이터 타입을 뜻한다.
+     */
+    public static void projection(EntityManager em) {
+        // 엔티티 프로젝션
+        // SELECT m FROM Member m
+        // SELECT m.team FROM Member m
+        // 원하는 객체를 바로 조회한다. 컬럼을 하나하나 나열하는 SQL과는 차이가 있다.
+        // 이렇게 조회한 엔티티는 영속성 컨텍스트에서 관리된다.
+
+        // 임베디드 타입 프로젝션
+        // 엔티티와 거의 비슷하게 사용된다.
+        // 임베디드 타입은 조회의 시작점이 될 수 없다는 제약이 있다.
+        // SELECT a FROM Address a (x)
+        // Order 엔티티가 시작점이다. 이렇게 엔티티를 통해서 임베디드 타입을 조회한다.
+        String query = "SELECT o.address FROM Order o";
+        List<Address> addresses = em.createQuery(query, Address.class).getResultList();
+        // 임베디드 타입은 엔티티 타입이 아닌 값 타입이다. 따라서 이렇게 조회한 임베디드 타입은 영속성 컨텍스트에서 관리되지 않는다.
+
+        // 스칼라 타입 프로젝션
+        // 숫자 문자 날짜와 같은 기본 데이터 타입들을 스칼라 타입이라 한다.
+        List<String> username =
+                em.createQuery("SELECT username FROM Member m", String.class)
+                        .getResultList();
+        // 중복 데이터를 제거하려면 DISTINCT를 사용한다.
+        // SELECT DISTINCT username FROM Member m
+
+        // 여러 값 조회
+        // 엔티티를 대상으로 조회하면 편리하겠지만, 꼭 필요한 데이터들만 선택해서 조회해야 할 때도 있다.
+        // 프로젝션에 여러 값을 선택하면 TypeQuery를 사용할 수 없고 대신에 Query를 사용해야 한다.
+        /*
+        Query query2 =
+                em.createQuery("SELECT m.username, m.age FROM Member m");
+
+        List resultList = query2.getResultList();
+
+        Iterator iterator = resultList.iterator();
+        while (iterator.hasNext()) {
+            Object[] row = (Object[]) iterator.next();
+            String username2 = (String) row[0];
+            Integer age = (Integer) row[1];
+        }
+        */
+        // 위의 소스를 간결하게 수정 1
+        List<Object[]> resultList =
+                em.createQuery("SELECT m.username, m.age FROM Member m")
+                        .getResultList();
+
+        for (Object[] row : resultList) {
+            String username2 = (String)row[0];
+            Integer age = (Integer)row[1];
+        }
+
+        // 비슷한 소스
+        List<Object[]> resultList2 =
+                em.createQuery("SELECT o.member, o.product, o.orderAmount FROM Order o")
+                        .getResultList();
+
+        for (Object[] row: resultList2) {
+            Member member = (Member)row[0];
+            Product product = (Product)row[1];
+            Integer age = (Integer) row[2];
+        }
+    }
+
+    /**
+     * JPA는 페이징을 다음 두 API로 추상화했다.
+     * setFirstResult(int startPosition) 조회 시작 위치(0부터 시작한다)
+     * setMaxResults(int maxResult) 조회할 데이터 수
+     * @param em
+     */
+    public static void setPagingInfo(EntityManager em) {
+
+
     }
 }
