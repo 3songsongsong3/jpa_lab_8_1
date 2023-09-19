@@ -173,6 +173,16 @@ public class Main {
      */
     public static void setPagingInfo(EntityManager em) {
 
+        // FirstResult의 시작은 0이므로 11번째부터 시작해서 총 20건의 데이터를 조회한다.
+        // 11~30번 데이터를 조회한다.
+        // 데이터베이스마다 다른 페이징 처리를 같은 API로 처리할 수 있는 것은 데이터베이스 방언 덕분이다.
+        TypedQuery<Member> query =
+                em.createQuery("SELECT m FROM Member m ORDER BY m.username DESC",
+                        Member.class);
+        query.setFirstResult(10);
+        query.setMaxResults(20);
+        query.getResultList();
+
 
     }
 }
