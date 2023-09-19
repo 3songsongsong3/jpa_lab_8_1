@@ -1,6 +1,7 @@
 import entity.Address;
 import entity.Member;
 import entity.Product;
+import entity.Team;
 
 import javax.persistence.*;
 import java.sql.SQLOutput;
@@ -26,7 +27,7 @@ public class Main {
      * 쿼리 객체는 TypedQuery와 Query가 있는데
      * 반환할 타입을 명확하게 지정할 수 있으면 TypedQuery객체를 사용하고,
      * 명확하게 지정할 수 없으면 Query 객체를 사용하면 된다.
-     * @param EntityManager em 엔티티 매니저
+     * @param em 엔티티 매니저
      */
     public static void typeQuery(EntityManager em) {
         // 두 번째 파라미터에 반환할 타입을 지정하면 TypeQuery를 반환하고
@@ -182,7 +183,43 @@ public class Main {
         query.setFirstResult(10);
         query.setMaxResults(20);
         query.getResultList();
+    }
 
+    /**
+     * 내부 조인은 INNER JOIN을 사용한다. INNER는 생략할 수있다.\
+     * 외부 조인은 LEFT OUTER JOIN을 사용한다. OUTER는 생략 가능해서 보통 LEFT JOIN으로 사용한다.
+     * @param em
+     */
+    public static void innerJoin(EntityManager em) {
+
+        // 조인 시 연관 필드 사용
+        String teamName = "팀A";
+        String query = "SELECT m FROM Member m INNER JOIN m.team t "
+                        + "WHERE t.name = :teamName";
+        // Member 타입 사용 가능
+        List<Member> resultList = em.createQuery(query, Member.class)
+                .setParameter("teamName", teamName)
+                .getResultList();
+
+
+        String query2 = "SELECT m, t FROM Member m JOIN m.team t";
+        List<Object[]> resultList2 = em.createQuery(query2).getResultList();
+
+        for (Object[] row: resultList2) {
+            Member member = (Member) row[0];
+            Team team = (Team) row[1];
+        }
+        /*
+         외부 조인
+            SELECT m
+            FROM Member m LEFT [OUTER] JOIN m.team t
+         */
+
+        /*
+         컬렉션 조인
+
+         */
 
     }
+
 }
