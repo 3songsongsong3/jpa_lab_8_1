@@ -217,9 +217,100 @@ public class Main {
 
         /*
          컬렉션 조인
+            일대다 관계나 다대다 관계처럼 컬렉션을 사용하는 곳에 조인하는 것을 컬렉션 조인이라 한다.
 
+            SELECT t, m FROM Team t LEFT JOIN t.members m
+
+            여기서 t LEFT JOIN t.members는 팀과 팀이 보유한 회원목록을 컬렉션 값 연관 필드로 외부 조인했다.
          */
 
+        /*
+          세타 조인
+
+          WHERE 절을 사용해서 세타 조인을 할 수 있다.
+          참고로 세타 조인은 내부 조인만 지원한다.
+          세타 조인을 사용하면 전혀 관계없는 엔티티도 조인할 수있다.
+
+          SELECT count(m) FROM Member m, Team t
+          WHERE m.username = t.name
+         */
+
+        /*
+          JOIN ON 절
+
+          JPA 2.1부터 조인할 때 ON절을 지원한다.
+          ON 절을 사용하면 조인 대상을 필터링하고 조인할 수 있다.
+
+          SELECT m,t FROM Member m
+          LEFT JOIN m.team t on t.name = 'A'
+         */
+    }
+
+    /**
+     * 페치 조인
+     * @param em
+     */
+    public static void fetchJoin(EntityManager em) {
+        /*
+            페치 조인은 SQL에서 이야기하는 조인의 종류는 아니고 JPQL에서 성능 최적화를 위해 제공하는 기능이다.
+            연관된 엔티티나 컬렉션을 한 번에 같이 조회하는 기능인데 join fetch 명령어로 사용할 수 있다.
+
+            select m
+            from Member m join fetch m.team
+
+            join 다음에 fetch라 적었다. 이렇게 하면 연관된 엔티티나 컬렉션을 함께 조회한다.
+            회원(m)과 팀(m.team)을 함께 조회한다.
+
+            m.team에 별칭이 없는데, 페치 조인은 별칭을 사용할 수 없다.
+
+            실행된 SQL은 다음과 같다.
+
+            SELECT
+                M.*, T.*
+            FROM MEMBER T
+                INNER JOIN TEAM T ON M.TEAM_ID = T.ID
+
+            엔티티 페치 조인 JPQL에서 select m으로 회원 엔티티만 선택했는데,
+            실행된 SQL을 보면 SELECT M.*, T.*로 회원과 연관된 팀도 함께 조회된 것을 확인할 수 있다.
+
+         */
+        String jpql = "select m from Member m join fetch m.team";
+        List<Member> members = em.createQuery(jpql, Member.class).getResultList();
+
+        for (Member member : members) {
+            System.out.println("username = " + member.getUsername() + ", " +
+                    "teamname = " member.getTeam().name());
+        }
+
+        /*
+            컬렉션 페치 조인
+
+            일대다 관계인 컬렉션을 페치 조인해보자.
+
+            select t
+            from Team t join fetch t.members
+            where t.name = '팀A'
+
+            SELECT
+                T.*, M.*
+            FROM TEAM T
+               INNER JOIN MEMBER M ON T.ID = M.TEAM_ID
+            WHERE T.NAME = '팀A'
+         */
+        String jpql2 = "select t from Team t join fetch t.members where t.name = '팀A'";
+        List<Team> teams = em.createQuery(jpql2, Team.class).getResultList();
+
+        for(Team team : teams) {
+            System.out.println("teamname = " + team.getName() + ", " +
+                    "team = " + team);
+            for (Member member : team.getMembers()) {
+                // 패치 조인으로 팀과 회원을 함께 조회해서 지연 로딩 발생 안함
+                System.out.println(
+                        "->username = " + member.getUsername() + "," +
+                                "member = " + member
+                );
+            }
+        }
     }
 
 }
