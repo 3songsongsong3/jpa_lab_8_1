@@ -363,9 +363,54 @@ public class Main {
             INNER JOIN MEMBER M ON T.ID=M.TEAM_ID
             WHERE T.NAME = '팀A'
          */
-
     }
+    public static void testPassExpression(EntityManager em) {
 
+        /*
+            경로 표현식이라는 것은 쉽게 이야기해서 .(점)을 찍어 객체 그래프를 탐색하는 것이다.
+
+            select m.username
+            from Member m
+                join m.team t
+                join m.orders o
+            where t.name = '팀A'
+
+            여기서 m.username, m.team, m.orders, t.name이 모두 경로 표현식을 사용한 예다.
+         */
+
+        /*
+            JPQL에서 경로 표현식을 사용해서 경로 탐색을 하려면 다음 3가지 경로에 따라 어떤 특징이 있는지 이해해야 한다.
+
+            1. 상태 필드 경로 : 경로 탐색의 끝이다. 더는 탐색할 수 없다.
+            2. 단일 값 연관 경로 : 묵시적으로 내부 조인이 일어난다. 단일 값 연관 경로는 계속 탐색할 수 있다.
+            3. 컬렉션 값 연관 경로 : 묵시적으로 내부 조인이 일어난다. 더는 탐색할 수 없다.
+                                   단, FROM 절에서 조인을 통해 별칭을 얻으면 별칭으로 탐색할 수 있다.
+
+            1. 상대 필드 경로 탐색
+                select m.username, m.age from Member m
+            2. 단일 값 연관 경로
+                select o.member from Order o
+                JPQL을 보면 o.member를 통해 주문에서 회원으로 단일 값 연관 필드로 경로 탐색을 했다.
+                단일 값 연관 필드로 경로 탐색을 하면 SQL에서 내부 조인이 일어나는데, 이것을 묵시적 조인이라고 한다.
+                묵시적 조인은 모두 내부 조인이다. 외부 조인은 명시적으로 JOIN 키워드를 사용해야 한다.
+
+                - 명시적 조인 : JOIN을 직접 적어주는 것
+                    select m from Member m JOIN m.team t
+                - 묵시적 조인 : 경로 표현식에 의해 묵시적으로 조인이 일어나는 것, 내부 조인 INNER JOIN만 할 수 있다.
+                    SELECT m.team FROM Member m
+            3. 컬렉션 값 연관 경로 탐색
+                JPQL을 다루면서 많이 하는 실수 중 하나는 컬렉션 값에서 경로 탐색을 시도 하는 것이다.
+
+                select t.members from Team t // 성공
+                select t.members.username from Team t // 실패
+
+                t.members 처럼 컬렉션 까지는 경로 탐색이 가능하다. 하지만 t.members.username 처럼 컬렉션에서의 경로 탐색은 허용하지 않는다.
+
+                만약 컬렉션에서 경로 탐색을 하고 싶으면 다음 코드처럼 조인을 사용해서 새로운 별칭을 획득해야 한다.
+                select m.username from Team t join t.members m
+
+         */
+    }
 }
 
 
