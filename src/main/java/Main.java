@@ -279,7 +279,7 @@ public class Main {
 
         for (Member member : members) {
             System.out.println("username = " + member.getUsername() + ", " +
-                    "teamname = " member.getTeam().name());
+                    "teamname = " + member.getTeam().name());
         }
 
         /*
@@ -311,6 +311,63 @@ public class Main {
                 );
             }
         }
+
+        /*
+            페치조인과 DISTINCT
+
+            JPQL의 DISTINCT 명령어는 SQL에 DISTINCT를 추가하는 것은 물론이고 애플리케이션에서 한 번 더 중복을 제거한다.
+
+            String distinctSql = "select distinct t from Team t join fetch t.members where t.name = '팀A'";
+
+            로우 번호 ||    팀      ||   회원
+            1              팀A          회원1
+            2              팀A          회원2
+            -----------------------------------
+            select distinct t의 의미는 팀 엔티티의 중복을 제거하라는 것이다.
+
+            출력 결과는 다음과 같다.
+            teamname  = 팀A, team = Team@0x100
+            -> username = 회원1, member = Member@0x200
+            -> username = 회원2, member = Member@0x300
+         */
+
+        /*
+            페치 조인과 일반 조인의 차이
+
+            select t
+            from Team t join t.members m
+            where t.name = '팀A'
+
+            -->
+
+            SELECT
+                T.*
+            FROM TEAM T
+            INNER JOIN MEMBER M ON T.ID=M.TEAM_ID
+            WHERE T.NAME = '팀A'
+
+            JPQL에서 팀과 회원 컬렉션을 조인했으므로 회원 컬렉션도 함께 조회되지 않는다!!!
+
+            JPQL은 결과를 반환할 때 연관관계 까지 고려하지 않는다.
+            단지 SELECT 절에 지정한 엔티티만 조회할 뿐이다.
+            --------------------------------------------------------
+            반면에 페치 조인을 사용하면 연관된 엔티티도 함께 조회한다.
+
+            select t
+            from Team t join fetch t.members
+            where t.name = '팀A'
+
+            SELECT
+                T.*, M.*
+            FROM TEAM T
+            INNER JOIN MEMBER M ON T.ID=M.TEAM_ID
+            WHERE T.NAME = '팀A'
+         */
+
     }
 
 }
+
+
+
+
