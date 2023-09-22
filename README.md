@@ -23,3 +23,15 @@
 * JPA는 페이징을 다음 두 API로 추상화했다.
 * setFirstResult(int startPosition) 조회 시작 위치(0부터 시작한다)
 * setMaxResults(int maxResult) 조회할 데이터 수
+  
+## 조인
+* 외부조인
+* 컬렉션 조인
+* 세타 조인
+* JOIN ON 절
+
+## 페치 조인
+* 페치 조인은 SQL에서 이야기하는 조인의 종류는 아니고 JPQL에서 성능 최적화를 위해 제공하는 기능이다. <br>연관된 엔티티나 컬렉션을 한 번에 같이 조회하는 기능인데 join fetch 명령어로 사용할 수 있다.
+* 컬렉션 페치 조인
+* 페치조인과 DISTINCT
+* 페치 조인과 일반 조인의 차이
