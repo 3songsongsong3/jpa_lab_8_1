@@ -411,6 +411,132 @@ public class Main {
 
          */
     }
+
+    /**
+     * 서브쿼리
+     * @param em
+     */
+    public static void testSubQuery(EntityManager em) {
+        /*
+            JPQL도 SQL처럼 서브 쿼리를 지원한다.
+            여기에는 몇 가지 제약이 있는데 서브 쿼리를 WHERE, HAVING 절에서만 사용할 수 있고
+            SELECT, FROM 절에서는 사용할 수 없다.
+
+            select m from Member m
+            where m.age > (select avg(m2.age) from Member m2)
+
+            다음은 한 건이라도 주문한 고객을 찾는다.
+            select m from Member m
+            where (select count(o) from Order o where m = o.member) > 0
+            ==
+            select m from Member m
+            where m.orders.size > 0
+         */
+
+        /*
+            서브 쿼리 함수
+
+            서브쿼리는 다음 함수들과 깉이 사용할 수 있다.
+            [NOT] EXISTS
+            {ALL | ANY | SOME}
+            [NOT] IN
+
+            EXISTS
+            서브쿼리에 결과가 존재하면 참이다. NOT은 반대
+            select m from Member m
+            where exists (select t from m.team t where t.name = '팀A')
+
+            {ALL | ANY | SOME}
+            비교 연산자와 같이 사용한다.
+            - ALL : 조건을 모두 만족하면 참이다.
+            - ANY 혹은 SOME : 둘은 같은 의미다. 조건을 하나라도 만족하면 참이다.
+
+                예 : 전체 상품 각각의 재고보다 주문량이 많은 주문들
+                select o from Order o
+                where o.orderAmount > ALL (select p.stockAmount from Product p)
+
+                예 : 어떤 팀이든 팀에 소속된 회원
+                select m from Member m
+                where m.team = ANY (select t from Team t)
+
+            IN
+            서브쿼리의 결과 중 하나라도 같은 것이 있으면 참이다.
+
+                예 : 20세 이상을 보유한 팀
+                select t from Team t
+                where t IN (select t2 from Team t2 JOIN t2.members m2 where m2.age >= 20)
+
+         */
+    }
+
+    /**
+     * 조건식
+     */
+    public static void testExpression(EntityManager em) {
+        /*
+            컬렉션 식
+
+            컬렉션 식은 컬렉션에만 사용하는 특별한 기능이다.
+            컬렉션은 컬렉션 식 이외에 다른 식은 사용할 수 없다.
+
+            문법 : {컬렉션 값 연관 경로} IS [NOT] EMPTY
+            설명 : 컬렉션에 값이 비었으면 참
+
+            // JPQL : 주문이 하나라도 있는 회원 조회
+            select m from Member m
+            where m.orders is not empty
+
+            // 실행된 SQL
+            select m.* from Member m
+            where
+                exists (
+                    select o.id
+                    from Orders o
+                    where m.id = o.member_id
+                )
+            컬렉션은 컬렉션 식만 사용할 수 있다.
+            is null은 사용 불가
+
+            // 컬렉션의 멤버 식
+            문법 : {엔티티나 값} [NOT] MEMBER [OF] {컬렉션 값 연관 경로}
+            설명 : 엔티티나 값이 컬렉션에 포함되어 있으면 참
+            예
+            select t from Team t
+            where :memberParam member of t.members
+         */
+
+        /*
+            CASE 식
+
+            특정 조건에 따라 분기할 때 CASE 식을 사용한다. CASE 식은 4가지 종류가 있다.
+            - 기본 CASE
+                select
+                    case when m.age <= 10 then '학생요금'
+                         when m.age >= 60 then '경로요금'
+                         else '일반요금'
+                    end
+                from Member m
+
+            - 심플 CASE
+                select
+                    case t.name
+                        when '팀A' then '인센티브110%'
+                        when '팀B' then '인센티브120%'
+                        else '인센티브105%'
+                    end
+                from Team t
+
+            - COALESCE
+                스칼라식을 차례대로 조회해서 null이 아니면 반환한다.
+                예 : m.username이 null이면 '이름 없는 회원을 반환하라.
+                select coalesce(m.username, '이름 없는 회원') from Member m
+
+            - NULLIF
+                두 값이 같으면 null을 반환하고 다르면 첫번째 값을 반환한다.
+                예 : 사용자 이름이 '관리자'면 null을 반환하고 나머지는 본인의 이름을 반환하라
+               select NULLIF(m.username, '관리자') from Member m
+         */
+    }
 }
 
 
