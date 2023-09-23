@@ -537,6 +537,61 @@ public class Main {
                select NULLIF(m.username, '관리자') from Member m
          */
     }
+
+    /**
+     * 엔티티를 직접 사용하여 조회
+     * @param em
+     */
+    public static void selectByEntity(EntityManager em) {
+
+        /*
+            엔티티 직접 사용
+
+            객체 인스턴스는 참조 값으로 식별하고 테이블 로우는 기본 키 값으로 식별한다.
+            JPQL에서 엔티티 객체를 직접 사용하면 SQL에서는 해당 엔티티의 기본 키 값을 사용한다.
+         */
+        String qlString = "select m from Member m where m = :member";
+        List resultList = em.createQuery(qlString)
+                .setParameter("member", member)
+                .getResultList();
+        /*
+            실행된 SQL
+
+            select m.*
+            from Member m
+            where m.id = ?
+         */
+
+        /*
+            식별자 값을 직접 사용하는 코드
+         */
+        String qlString2 = "select m from Member m where m.id = :memberId";
+        List resultList2 = em.createQuery(qlString2)
+                .setParameter("memberId", 4L)
+                .getResultList();
+        ////////////////////////////////////////////////////////////////////////////
+        /*
+            외래 키 값
+         */
+        Team team = em.find(Team.class, 1L);
+        String qlString3 = "select m from Member m where m.team = :team";
+        List resultList3 = em.createQuery(qlString3)
+                .setParameter("team", team)
+                .getResultList();
+        /*
+            기본키 값이 1L인 팀 엔티티를 파라미터로 사용하고 있다.
+            m.team은 현재 team_id라는 외래 키와 매핑되어 있다.
+         */
+
+        /*
+            외래키에 식별자를 직접 사용하는 코드
+         */
+        String qlString4 = "select m from Member m where m.team.id = :teamId";
+        List resultList4 = em.createQuery(qlString4)
+                .setParameter("teamId", 1L)
+                .getResultList();
+
+    }
 }
 
 
